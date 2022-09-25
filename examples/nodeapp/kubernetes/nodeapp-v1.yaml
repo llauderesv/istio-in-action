@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nodeapp-v1
+  name: nodeapp-v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      version: v1
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: nodeapp
+        version: v1
+    spec:
+      containers:
+        - image: nodeapp:v1.0
+          name: nodeapp
+          ports:
+            - containerPort: 3000
+          resources: {}
+status: {}

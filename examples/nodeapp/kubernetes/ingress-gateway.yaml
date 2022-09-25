@@ -1,0 +1,58 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: nodeapp-gateway
+  namespace: istio-system # global gateway that was deployed in istio-namespace system
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: webapp-virtualservice
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - istio-system/nodeapp-gateway
+  http:
+    - match:
+        - headers:
+            x-dark-launch:
+              exact: "v2"
+          uri:
+            prefix: /nodeapp/
+        - headers:
+            x-dark-launch:
+              exact: "v2"
+          uri:
+            exact: /nodeapp
+      rewrite:
+        uri: "/"
+      route:
+        - destination:
+            host: nodeapp
+            port:
+              number: 80
+            subset: version-v2
+    - match:
+        - uri:
+            prefix: /nodeapp/
+        - uri:
+            exact: /nodeapp
+      rewrite:
+        uri: "/"
+      route:
+        - destination:
+            host: nodeapp
+            port:
+              number: 80
+            subset: version-v1
