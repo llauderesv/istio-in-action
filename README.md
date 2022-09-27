@@ -1,6 +1,12 @@
 # Istio in action
 
-Praciting istio service mesh.
+Exploring Istio service mesh using the Istio in action books by Chris Posta.
+
+Benifits of using Istio Service Mesh
+
+Why use Istio?
+
+- Solves the problem of inter service-to-service communication in your cluster.
 
 ## Definition and Terms in Istio
 
@@ -9,6 +15,11 @@ Praciting istio service mesh.
 Istio is a service mesh that is responsible for service to service communication inside in your cluster. But Istio can able to accept request outside of the cluster. To enable clients access the services inside your cluster and allow them, you need to create a `Gateway` resource in Istio. Gateway is way to expose your cluster to the external client and access the individually service inside it.
 
 ![Istio Gateway](./screenshots/gateway.jpg)
+
+
+Istio Gateway can act as a reverse proxy in your cluster that you have a single entry point where your requests comes in and will delegate the request to the corresponding backend services.
+
+![Istio Gateway](./screenshots/gateway-2.jpg)
 
 ### Gateway YAML definition
 
