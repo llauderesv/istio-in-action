@@ -8,10 +8,8 @@ const { PORT = 3000 } = process.env;
 
 app.use(cors());
 
-app.get('/', (req, res) => res.send('Welcome to Istio in Action tutorial'));
-
-app.get('/healthz', (req, res) => res.json({ status: 'Ok' }));
-
+app.get('/', (req, res) => res.json({ status_code: 200 }));
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.get('/api/v1/catalog', (req, res) => res.json(data));
 
 app.listen(PORT, () =>

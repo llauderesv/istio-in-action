@@ -1,86 +1,61 @@
 # Istio in action
 
-Exploring Istio service mesh using the Istio in action books by Chris Posta.
+Exploring Istio Service Mesh.
 
-Benifits of using Istio Service Mesh
+## Benefits of using Istio Service Mesh
 
-Why use Istio?
+- Understand network interactions between services inside your Kubernetes Cluster.
+- Traffic inspection between services.
+- Granular policies percentage-based routing.
+- Automate policies across 1000s of services.
+- Decouple the network from your application code.
 
-- Solves the problem of inter service-to-service communication in your cluster.
+What else can Istio do?
 
-## Definition and Terms in Istio
+- API Management (JWT, Rate limiting)
+- Authorization (RBAC)
+- Telemetry forwarding (Mixer adapters)
+- Hybrid Mesh (Multiple Kubernetes clusters)
+- VM-Based workloads
 
-### Gateway
+## Allowing Traffic
 
-Istio is a service mesh that is responsible for service to service communication inside in your cluster. But Istio can able to accept request outside of the cluster. To enable clients access the services inside your cluster and allow them, you need to create a `Gateway` resource in Istio. Gateway is way to expose your cluster to the external client and access the individually service inside it.
+In Kubernetes, to access your individual services outside the cluster you need to setup an Ingress Controller. In Istio that that Ingress Controller called **Gateway**. 
 
-![Istio Gateway](./screenshots/gateway.jpg)
-
+**Gateway** allows inbound traffic inside the Kubernetes Cluster, and delegates it to the underlying services. It's a way to expose your cluster to the external client and access your individual services inside it.
 
 Istio Gateway can act as a reverse proxy in your cluster that you have a single entry point where your requests comes in and will delegate the request to the corresponding backend services.
 
-![Istio Gateway](./screenshots/gateway-2.jpg)
+![Istio Gateway](./screenshots/ingress.jpg)
 
-### Gateway YAML definition
+### Gateway
 
 ```yaml
 apiVersion: networking.istion.io/v1alpha3
 kind: Gateway
 metadata:
-  name: ecommerce-gateway
+  name: webapp-gateway
 spec:
   selector:
-    istio: ingressgateway # use istio default controller
+    istio: ingressgateway # use stio default controller
   servers:
     - port:
         number: 80
         name: http
         protocol: HTTP
       hosts:
-        - "*" # what hosts should be exposed externally.
+        - "*" # what hosts should be exposed externally. It can be changed in production on what host are you using.
 ```
+
+## Traffic Control
+
+One of the selling point of Istio is that you can control how to traffic would flow in your underlying services once it got in your Kubernetes cluster. The way Istio does this is via **VirtualService**.
+
+When talking about the **VirtualService** capability, one of the capability that I liked is the traffic control. Basically you can control the traffic where goes into your deployment in Kubernetes. For example you already have deployed instance of your application in production and your team is releasing a new feature and wanted to beta test it in a small subset of user, by passing a custom request header and by that they're going to get the new features that you add. In Istio you can create a `DestinationRule` and attached that to VirtualService subset to route to specific deployment with labels to it. You can also control how much traffic can receive a specific service by adding a `weight` argument in the VirtualService.
 
 ### VirtualService
 
-By default your services inside your cluster isn't exposed. To be able to access them with your `Gateway` resource, you need to create a `VirtualService`. VirtualService is a way to exposed in your Kubernetes Services in your cluster so that the Gateway can able to access them. By using VirtualService, you can have a fine-grained control your services such as resiliency, observability and traffic routing.
-
 ```yaml
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: webapp-virtualservice
-spec:
-  hosts:
-    - "*" # What host should be virtualservice are exposed
-  gateways:
-    - outfitters-gateway # The name of the gateway that virtualservice going to used to.
-  http:
-    - route: # route the virtual service to the specific service
-        - destination:
-            host: webapp # the service name that you're going to route it also accept a FQDN (e.g. webapp.<namespace>.svc.cluster.local)
-            port:
-              number: 80 # the port of the service that are using default value is 80.
-```
-
-When talking about the VirtualService capability, one of the capability that I liked in VirtualService is the traffic control. Basically you can control the traffic where goes into your deployment in Kubernetes. For example you already have deployed instance of your application in production and your team is releasing a new feature and wanted to beta test it in a small subset of user, by passing a custom request header and by that they're going to get the new features that you add. In Istio you can create a `DestinationRule` and attached that to VirtualService subset to route to specific deployment with labels to it.
-
-### DestinationRule
-
-```yaml
-apiVersion: networking.istio.io/v1alpha3
-kind: DestinationRule
-metadata:
-  name: webapp
-spec:
-  host: webapp # the service name
-  subsets:
-    - name: version-v1 # subset name which will be going to use to the VirtualService
-      labels:
-        version: v1 # the selector on which Kubernetes Pods labeled with version: v1 will belong to the v1 group of the webapp service that Istio knows about.
-    - name: version-v2
-      labels:
-        version: v2 # the selector on which Kubernetes Pods labeled with version: v2 will belong to the v2 group of the webapp service that Istio knows about.
----
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
@@ -98,9 +73,85 @@ spec:
         - destination:
             host: webapp
             subset: version-v2
+          weight: 10
     # If no match the default route will go to subset: version-v1 label.
     - route:
         - destination:
             host: webapp
             subset: version-v1
+          weight: 90
 ```
+
+### DestinationRule
+
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: webapp
+spec:
+  host: webapp # the service name
+  subsets:
+    - name: version-v1 # subset name which will be going to use to the VirtualService
+      labels:
+        version: v1 # the selector on which Kubernetes Pods labeled with version: v1 will belong to the v1 group of the webapp service that Istio knows about.
+    - name: version-v2
+      labels:
+        version: v2 # the selector on which Kubernetes Pods labeled with version: v2 will belong to the v2 group of the webapp service that Istio knows about.
+```
+
+### Weighted based routing
+
+You can split the flow of your traffic between your services depending on the value of `weighted` argument in the `VirtualService`.
+
+![Weighted based](./screenshots/weighted.jpg)
+
+### Content based routing
+
+Istio can intercept the request and make decision based on the request based on the condition of the header that they passed.
+
+Why should you do this? Maybe in your team your trying to release feature that need to test for a certain amount of users and you wanted to do that by passing a custom header by them they will only the ones who will received that features.
+
+![Content Based routing](./screenshots/content-based-routing.jpg)
+
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: webapp
+spec:
+  hosts:
+    - webapp
+  http:
+    - match:
+        - headers:
+            foo:
+              exact: "bar1"
+        route:
+        - destination:
+            host: nodeapp
+            subset: v1
+```
+
+## Resiliency 
+
+### Circuit Breaker
+
+Circuit breaking is a programming pattern that if you have multiple requests that more than one fail, you're going to flip the circuit breaker and stopping.
+
+![Circuit Breaker](./screenshots/circuit-breaker.jpg)
+
+### Chaos Testing
+
+Istio allows you to check the service that has unhealthy 
+
+
+## Adopting Istio - Best Practices
+
+- Choose the one feature that's most important to you (ingress? rollouts? end-to-end encryption?)
+- Learn the essentials **Istio CRDs** for or that feature.
+- **Start slow** (deploy that Istio feature on a few Services).
+
+## Resources
+- https://www.youtube.com/watch?v=7cINRP0BFY8&list=WL
+- https://www.manning.com/books/istio-in-action
