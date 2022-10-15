@@ -1,6 +1,12 @@
 # Istio in action
 
-Exploring Istio Service Mesh.
+## What is Istio?
+
+Istio is an open source service mesh that helps organizations run distributed, microservices-based apps anywhere. Why use Istio? Istio enables organizations to secure, connect, and monitor microservices, so they can modernize their enterprise apps more swiftly and securely.
+
+Istio manages traffic flows between services, enforces access policies, and aggregates telemetry data, all without requiring changes to application code. Istio eases deployment complexity by transparently layering onto existing distributed applications.
+
+source: https://cloud.google.com/learn/what-is-istio
 
 ## Benefits of using Istio Service Mesh
 
@@ -51,9 +57,9 @@ spec:
 
 One of the selling point of Istio is that you can control how to traffic would flow in your underlying services once it got in your Kubernetes cluster. The way Istio does this is via **VirtualService**.
 
-When talking about the **VirtualService** capability, one of the capability that I liked is the traffic control. Basically you can control the traffic where goes into your deployment in Kubernetes. For example you already have deployed instance of your application in production and your team is releasing a new feature and wanted to beta test it in a small subset of user, by passing a custom request header and by that they're going to get the new features that you add. In Istio you can create a `DestinationRule` and attached that to VirtualService subset to route to specific deployment with labels to it. You can also control how much traffic can receive a specific service by adding a `weight` argument in the VirtualService.
-
 ### VirtualService
+
+When talking about the **VirtualService** capability, one of the capability that I liked is the traffic control. Basically you can control the traffic where goes into your deployment in Kubernetes. For example you already have deployed instance of your application in production and your team is releasing a new feature and wanted to beta test it in a small subset of user, by passing a custom request header and by that they're going to get the new features that you add. In Istio you can create a `DestinationRule` and attached that to VirtualService subset to route to specific deployment with labels to it. You can also control how much traffic can receive a specific service by adding a `weight` argument in the VirtualService.
 
 ```yaml
 apiVersion: networking.istio.io/v1alpha3
