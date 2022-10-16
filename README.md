@@ -4,17 +4,17 @@
 
 Istio is an open source service mesh that helps organizations run distributed, microservices-based apps anywhere. Why use Istio? Istio enables organizations to secure, connect, and monitor microservices, so they can modernize their enterprise apps more swiftly and securely.
 
-Istio manages traffic flows between services, enforces access policies, and aggregates telemetry data, all without requiring changes to application code. Istio eases deployment complexity by transparently layering onto existing distributed applications.
+Istio manages traffic flows between services, enforces access policies, and aggregates telemetry data, **all without requiring changes to application code.** Istio eases deployment complexity by transparently layering onto existing distributed applications.
 
 source: https://cloud.google.com/learn/what-is-istio
 
 ## Benefits of using Istio Service Mesh
 
-- Understand network interactions between services inside your Kubernetes Cluster.
-- Traffic inspection between services.
-- Granular policies percentage-based routing.
-- Automate policies across 1000s of services.
-- Decouple the network from your application code.
+- [x] Understand network interactions between services inside your Kubernetes Cluster.
+- [x] Traffic inspection between services.
+- [x] Granular policies, percentage-based routing to your deployments.
+- [x] Automate policies across 1000s of services.
+- [x] Decouple the network from your application code.
 
 What else can Istio do?
 
